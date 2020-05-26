@@ -5,12 +5,11 @@ import webscraper.Utils.{setProxy, url}
 object Main extends App {
 
   setProxy()
+  val scrapper = Scrapper()
 
-  val data = Scrapper(url).fetch
-//  println(data.mkString("\n"))
-  println(s"\nFound entries: ${data.size}")
+  val categories = scrapper.getCategories(url)
+  val categoriesLinks = categories.map(x => (x.text, x.attr("href"))).toList
+  println(categoriesLinks.mkString("\n"))
 
-//  val asd = for (d <- data) yield (d.text, d.attr("href"))
-  val asd = data.map(x => (x.text, x.attr("href")))
-  println(asd.mkString("\n"))
+  val offers = scrapper.getOffers(categoriesLinks.head._2)
 }

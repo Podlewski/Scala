@@ -4,20 +4,21 @@ import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model.Element
+import webscraper.Utils.retry
 
 import scala.util.{Failure, Success, Try}
 
-class Scrapper(url: String) {
+class Scrapper {
 
   private val browser = JsoupBrowser()
 
-  def fetch: Seq[Element] = {
-    val site = Utils.retry(15)(browser.get(url))
+  def getCategories(url: String): List[Element] = {
+    val site = retry(15)(browser.get(url))
 
     val rootNode = site >> elementList(".maincategories")
-    val aNodes = (rootNode >> elementList(".wrapper .maincategories-list a")).flatten
+    val childNodes = (rootNode >> elementList(".wrapper .maincategories-list a")).flatten
 
-    val results = aNodes map { e =>
+    val results = childNodes map { e =>
       val result = Try(e >> element("a"))
       result match {
         case Success(a) => a
@@ -27,8 +28,19 @@ class Scrapper(url: String) {
 
     results.take(100)
   }
+
+  def getOffers(url: String) = {
+    val site = retry(15)(browser.get(url))
+
+    var rootNode = site >> elementList("table")
+    rootNode = rootNode.filter(x => x.hasAttr("summary") && x.attr("summary").contentEquals("Ogłoszenia"))
+
+    val childNodes = (rootNode >> elementList("table tbody")).flatten
+
+    var a = 1
+  }
 }
 
 object Scrapper {
-  def apply(url: String) = new Scrapper(url)
+  def apply() = new Scrapper()
 }
