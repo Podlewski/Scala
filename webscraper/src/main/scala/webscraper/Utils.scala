@@ -2,9 +2,11 @@ package webscraper
 
 object Utils {
 
-  val url = "http://en.wikipedia.org/wiki/List_of_Cuban_artists"
-  val proxyHost = "82.119.170.106"
-  val proxyPort = "8080"
+  val url = "http://www.olx.pl"
+  val proxyHost = "145.239.121.218"
+  val proxyPort = "3129"
+//  val proxyHost = "82.119.170.106"
+//  val proxyPort = "8080"
 
   def setProxy(host: String = proxyHost, port: String = proxyPort): Unit = {
     // https://hidemy.name/en/proxy-list/?type=hs&anon=4#list

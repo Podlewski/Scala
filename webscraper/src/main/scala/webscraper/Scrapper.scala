@@ -3,28 +3,29 @@ package webscraper
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
+import net.ruippeixotog.scalascraper.model.Element
 
 import scala.util.{Failure, Success, Try}
 
 class Scrapper(url: String) {
 
-  def fetch: Seq[String] = {
-    val browser = JsoupBrowser()
+  private val browser = JsoupBrowser()
+
+  def fetch: Seq[Element] = {
     val site = Utils.retry(15)(browser.get(url))
 
-    val start = site >> elementList(".mw-parser-output")
-    val items = (start >> elementList(".mw-parser-output > ul > li")).flatten
+    val rootNode = site >> elementList(".maincategories")
+    val aNodes = (rootNode >> elementList(".wrapper .maincategories-list a")).flatten
 
-    val bands = items map { e =>
-      val band = Try(e >> element("a"))
-      band match {
-        case Success(a) => a.text
-        case Failure(_) => e.text
+    val results = aNodes map { e =>
+      val result = Try(e >> element("a"))
+      result match {
+        case Success(a) => a
+        case Failure(_) => e
       }
     }
 
-    val webpage = new Webpage(site.title)
-    bands.take(10000)
+    results.take(100)
   }
 }
 

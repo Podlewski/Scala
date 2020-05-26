@@ -1,11 +1,16 @@
 package webscraper
 
+import webscraper.Utils.{setProxy, url}
+
 object Main extends App {
 
-  Utils.setProxy()
+  setProxy()
 
-  val data = Scrapper(Utils.url).fetch
-
-  println(data.mkString("\n"))
+  val data = Scrapper(url).fetch
+//  println(data.mkString("\n"))
   println(s"\nFound entries: ${data.size}")
+
+//  val asd = for (d <- data) yield (d.text, d.attr("href"))
+  val asd = data.map(x => (x.text, x.attr("href")))
+  println(asd.mkString("\n"))
 }
