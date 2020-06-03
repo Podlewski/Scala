@@ -11,5 +11,13 @@ object Main extends App {
   val categoriesLinks = categories.map(x => (x.text, x.attr("href"))).toList
   println(categoriesLinks.mkString("\n"))
 
-  val offers = scrapper.getOffers(categoriesLinks.head._2)
+  try{
+    var offers = scrapper.getOffers("https://www.olx.pl/oferty/q-scala/")
+    println("Oferty: " + offers.size);
+    offers = scrapper.getOffers(categoriesLinks.head._2)
+    println("Oferty: " + offers.size);
+  }
+  catch {
+    case e: ToManyOffersException => println(e.message)
+  }
 }

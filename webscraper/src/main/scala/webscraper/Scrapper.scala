@@ -30,14 +30,48 @@ class Scrapper {
   }
 
   def getOffers(url: String) = {
-    val site = retry(15)(browser.get(url))
+    var site = retry(15)(browser.get(url))
+
+    val counter = (site >> elementList(".hasPromoted p"))(0).text.filter(_.isDigit)
+
+    if (counter.toInt > 19500)
+      throw new ToManyOffersException("Znaleziono " + counter + " ofert, za dużo by uwzględnić wszystkie w statystykach")
+
+    var nextPage: List[Element] = null;
+    var results: List[Element] = List[Element]();
+
+    do{
+      results = results ::: getOffersFromSite(site)
+
+      nextPage = site >> elementList("head link")
+      nextPage = nextPage.filter(x => x.hasAttr("rel") && x.attr("rel").contentEquals("next"))
+
+      if(nextPage.size != 0) {
+        val nextUrl = nextPage.map(x => x.attr("href")).toList(0)
+        site = retry(15)(browser.get(nextUrl))
+      }
+
+    }while(nextPage.size != 0)
+
+    results
+  }
+
+  def getOffersFromSite(site:  Scrapper.this.browser.DocumentType) = {
 
     var rootNode = site >> elementList("table")
     rootNode = rootNode.filter(x => x.hasAttr("summary") && x.attr("summary").contentEquals("Ogłoszenia"))
 
-    val childNodes = (rootNode >> elementList("table tbody")).flatten
+    val childNodes = (rootNode >> elementList(".offer table tbody")).flatten
 
-    var a = 1
+    val results = childNodes map { e =>
+      val result = Try(e >> element("a"))
+      result match {
+        case Success(a) => a
+        case Failure(_) => e
+      }
+    }
+
+    results
   }
 }
 
