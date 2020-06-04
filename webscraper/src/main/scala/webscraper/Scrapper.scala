@@ -32,10 +32,13 @@ class Scrapper {
   def getOffers(url: String) = {
     var site = retry(15)(browser.get(url))
 
-    val counter = (site >> elementList(".hasPromoted p"))(0).text.filter(_.isDigit)
+    val foundOffers = (site >> elementList(".hasPromoted p"))(0).text
 
-    if (counter.toInt > 19500)
-      throw new ToManyOffersException("Znaleziono " + counter + " ofert, za dużo by uwzględnić wszystkie w statystykach")
+    if(foundOffers.contains("Nie znaleźliśmy ogłoszeń dla tego zapytania."))
+      throw new ScrappingException("Nie znaleziono żadnych ofert dla takiego zapytania")
+
+    if (foundOffers.filter(_.isDigit).toInt > 19500)
+      throw new ScrappingException("Znaleziono " + foundOffers + " ofert, za dużo by uwzględnić wszystkie w statystykach")
 
     var nextPage: List[Element] = null;
     var results: List[Element] = List[Element]();
@@ -64,7 +67,7 @@ class Scrapper {
     val childNodes = (rootNode >> elementList(".offer table tbody")).flatten
 
     val results = childNodes map { e =>
-      val result = Try(e >> element("a"))
+      val result = Try(e >> element("tr"))
       result match {
         case Success(a) => a
         case Failure(_) => e
