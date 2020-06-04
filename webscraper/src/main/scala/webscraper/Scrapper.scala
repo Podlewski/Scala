@@ -26,43 +26,45 @@ class Scrapper {
       }
     }
 
-    results.take(100)
+    results
   }
 
-  def getOffers(url: String) = {
+  def getOffers(url: String): List[Element] = {
     var site = retry(15)(browser.get(url))
 
-    val foundOffers = (site >> elementList(".hasPromoted p"))(0).text
+    val foundOffers = site >> elementList(".hasPromoted p")
 
-    if(foundOffers.contains("Nie znaleźliśmy ogłoszeń dla tego zapytania."))
-      throw new ScrappingException("Nie znaleziono żadnych ofert dla takiego zapytania")
+    if (foundOffers.size < 1 || foundOffers.head.text.contains("Nie znaleźliśmy ogłoszeń dla tego zapytania."))
+      throw ScrappingException("Nie znaleziono żadnych ofert dla takiego zapytania")
 
-    if (foundOffers.filter(_.isDigit).toInt > 19500)
-      throw new ScrappingException("Znaleziono " + foundOffers + " ofert, za dużo by uwzględnić wszystkie w statystykach")
+    if (foundOffers.head.text.filter(_.isDigit).toInt > 19500)
+      throw ScrappingException(s"Znaleziono $foundOffers ofert - za dużo by uwzględnić wszystkie w statystykach")
 
     var nextPage: List[Element] = null;
-    var results: List[Element] = List[Element]();
+    var results = List[Element]();
 
-    do{
+    do {
       results = results ::: getOffersFromSite(site)
 
       nextPage = site >> elementList("head link")
-      nextPage = nextPage.filter(x => x.hasAttr("rel") && x.attr("rel").contentEquals("next"))
+      nextPage = nextPage.filter(x =>
+        x.hasAttr("rel") && x.attr("rel").contentEquals("next")
+      )
 
-      if(nextPage.size != 0) {
-        val nextUrl = nextPage.map(x => x.attr("href")).toList(0)
+      if (nextPage.nonEmpty) {
+        val nextUrl = nextPage.map(x => x.attr("href")).head
         site = retry(15)(browser.get(nextUrl))
       }
-
-    }while(nextPage.size != 0)
+    } while (nextPage.nonEmpty)
 
     results
   }
 
-  def getOffersFromSite(site:  Scrapper.this.browser.DocumentType) = {
-
+  def getOffersFromSite(site: Scrapper.this.browser.DocumentType): List[Element] = {
     var rootNode = site >> elementList("table")
-    rootNode = rootNode.filter(x => x.hasAttr("summary") && x.attr("summary").contentEquals("Ogłoszenia"))
+    rootNode = rootNode.filter(x =>
+      x.hasAttr("summary") && x.attr("summary").contentEquals("Ogłoszenia")
+    )
 
     val childNodes = (rootNode >> elementList(".offer table tbody")).flatten
 

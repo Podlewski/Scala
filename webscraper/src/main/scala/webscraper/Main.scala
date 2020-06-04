@@ -1,6 +1,6 @@
 package webscraper
 
-import webscraper.Utils.{setProxy, printOffersStats, olxUrl}
+import webscraper.Utils.{olxUrl, printOffersStats, setProxy}
 
 object Main extends App {
 
@@ -14,16 +14,17 @@ object Main extends App {
 
     println("Kategorie:\n")
     for (category <- categoriesLinks) {
-      println(index + ": " + category._1 + " (" + category._2 + ")" )
+      println(index + ": " + category._1 + " (" + category._2 + ")")
       index = index + 1
     }
   }
+
   else if (args.length > 0) {
     var urlBase = olxUrl
     var query = args.mkString("-")
     var infoLog: String = ""
 
-    if(args.length > 1 && args(0).forall(_.isDigit)) {
+    if (args.length > 1 && args(0).forall(_.isDigit)) {
       val categories = scrapper.getCategories(olxUrl)
       val categoriesLinks = categories.map(x => (x.text, x.attr("href")))
 
@@ -33,11 +34,11 @@ object Main extends App {
     }
 
     val locations = List(("Cała Polska", "oferty"), ("Województwo Łódzkie", "lodzkie"), ("Łódź", "lodz"))
-    infoLog = "Wyniki dla zapytania '" + query.replace('-', ' ') + infoLog + ":"
+    infoLog = "Wyniki dla zapytania '" + query.replace('-', ' ') + infoLog + "':"
     println(infoLog)
 
     for (location <- locations) {
-      var url = urlBase + location._2 + "/q-" + query + "/"
+      val url = urlBase + location._2 + "/q-" + query + "/"
 
       try {
         val offers = scrapper.getOffers(url)

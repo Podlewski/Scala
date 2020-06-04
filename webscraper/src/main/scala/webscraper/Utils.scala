@@ -3,11 +3,12 @@ package webscraper
 import net.ruippeixotog.scalascraper.model.Element
 
 object Utils {
+
   val olxUrl = "http://www.olx.pl/"
   val proxyHost = "145.239.121.218"
   val proxyPort = "3129"
-//  val proxyHost = "82.119.170.106"
-//  val proxyPort = "8080"
+  //  val proxyHost = "82.119.170.106"
+  //  val proxyPort = "8080"
 
   def setProxy(host: String = proxyHost, port: String = proxyPort): Unit = {
     // https://hidemy.name/en/proxy-list/?type=hs&anon=4#list
@@ -26,15 +27,19 @@ object Utils {
     }
   }
 
-  def printOffersStats(offers: List[Element]) = {
-    if(offers.size == 0)
+  def printOffersStats(offers: List[Element]): Unit = {
+    if (offers.isEmpty) {
       println("Brak ofert")
-    else {
+    } else {
       val offersDetails = offers.map(x => x.select("strong").map(_.text) ++ x.select("[href]").map(_.attr("href")))
-        .map(x => (x.toList(0), x.toList(1).toString.replaceAll("Za darmo", "0").replaceAll("Zamienię", "-1").replaceAll("[^\\d,.-]", "").replaceAll(",", ".").toDouble, x.toList(2)))
+        .map(x => (x.toList(0), x.toList(1)
+          .replaceAll("Za darmo", "0")
+          .replaceAll("Zamienię", "-1")
+          .replaceAll("[^\\d,.-]", "")
+          .replaceAll(",", ".").toDouble, x.toList(2)))
 
       val paidOffers = offersDetails.filter(_._2 > 0)
-      if(paidOffers.size > 0) {
+      if (paidOffers.nonEmpty) {
         println("\nOferty: " + paidOffers.size)
 
         var meanValue = paidOffers.map(_._2).sum / paidOffers.size
@@ -44,21 +49,29 @@ object Utils {
 
         println(s"\nŚrednia: $meanValue zł")
         println(s"\nNajtańsze oferty: $minValue zł")
-        for (offer <- paidOffers.filter(_._2 == minValue)) {println(offer._1 + " (" + offer._3 + ")")}
+        for (offer <- paidOffers.filter(_._2 == minValue)) {
+          println(offer._1 + " (" + offer._3 + ")")
+        }
         println(s"\nNajdroższe oferty: $maxValue zł")
-        for (offer <- paidOffers.filter(_._2 == maxValue)) {println(offer._1 + " (" + offer._3 + ")")}
+        for (offer <- paidOffers.filter(_._2 == maxValue)) {
+          println(offer._1 + " (" + offer._3 + ")")
+        }
       }
 
       val freeOffers = offersDetails.filter(_._2 == 0)
-      if (freeOffers.size > 0) {
+      if (freeOffers.nonEmpty) {
         println("\nOferty darmowe: " + offersDetails.filter(_._2 == 0).size)
-        for (offer <- freeOffers) {println(offer._1 + " (" + offer._3 + ")")}
+        for (offer <- freeOffers) {
+          println(offer._1 + " (" + offer._3 + ")")
+        }
       }
 
       val offersWithSwap = offersDetails.filter(_._2 == -1)
-      if (offersWithSwap.size > 0) {
+      if (offersWithSwap.nonEmpty) {
         println("\nOferty zamiany: " + offersWithSwap.size)
-        for (offer <- offersWithSwap) {println(offer._1 + " (" + offer._3 + ")")}
+        for (offer <- offersWithSwap) {
+          println(offer._1 + " (" + offer._3 + ")")
+        }
       }
     }
   }
