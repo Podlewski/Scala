@@ -41,8 +41,8 @@ object Main extends App {
       val url = urlBase + location._2 + "/q-" + query + "/"
 
       try {
-        val offers = scrapper.getOffers(url)
         println("\n" + location._1.toUpperCase)
+        val offers = scrapper.getOffers(url)
         printOffersStats(offers)
       }
       catch {
